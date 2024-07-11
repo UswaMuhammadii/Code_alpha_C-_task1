@@ -1,0 +1,85 @@
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+
+// Function to encrypt the text
+void encrypt(char* text, int shift) {
+    for (size_t i = 0; i < strlen(text); ++i) {
+        if (isalpha(text[i])) {
+            char base = islower(text[i]) ? 'a' : 'A';
+            text[i] = (text[i] - base + shift) % 26 + base;
+        }
+    }
+}
+
+// Function to decrypt the text
+void decrypt(char* text, int shift) {
+    encrypt(text, 26 - shift);
+}
+
+// Function to read from a file
+char* readFromFile(const char* fileName) {
+    FILE* file = fopen(fileName, "rb");
+    if (!file) {
+        cerr << "Could not open file for reading: " << fileName << endl;
+        exit(1);
+    }
+
+    fseek(file, 0, SEEK_END);
+    long fileSize = ftell(file);
+    rewind(file);
+
+    char* content = new char[fileSize + 1];
+    fread(content, 1, fileSize, file);
+    content[fileSize] = '\0';
+    fclose(file);
+
+    return content;
+}
+
+// Function to write to a file
+void writeToFile(const char* fileName, const char* content) {
+    FILE* file = fopen(fileName, "wb");
+    if (!file) {
+        cerr << "Could not open file for writing: " << fileName << endl;
+        exit(1);
+    }
+
+    fwrite(content, 1, strlen(content), file);
+    fclose(file);
+}
+
+int main() {
+    char inputFile[256], outputFile[256];
+    int shift;
+    char choice;
+
+    cout << "Enter input file name: ";
+    cin >> inputFile;
+    cout << "Enter output file name: ";
+    cin >> outputFile;
+    cout << "Enter shift amount: ";
+    cin >> shift;
+    cout << "Encrypt or Decrypt (e/d): ";
+    cin >> choice;
+
+    char* content = readFromFile(inputFile);
+
+    if (choice == 'e' || choice == 'E') {
+        encrypt(content, shift);
+    } else if (choice == 'd' || choice == 'D') {
+        decrypt(content, shift);
+    } else {
+        cerr << "Invalid choice!" << endl;
+        delete[] content;
+        return 1;
+    }
+
+    writeToFile(outputFile, content);
+    cout << "Operation completed successfully." << endl;
+
+    delete[] content;
+    return 0;
+}
